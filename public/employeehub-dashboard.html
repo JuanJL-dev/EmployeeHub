@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EmployeeHub API — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #0d0f14;
+    --surface:   #141720;
+    --surface2:  #1c2030;
+    --border:    #272d3f;
+    --accent:    #4f8ef7;
+    --accent2:   #7c5cfc;
+    --green:     #2dd4a0;
+    --red:       #f7604f;
+    --yellow:    #f7c94f;
+    --text:      #e8eaf0;
+    --muted:     #6b7494;
+    --radius:    10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Sora', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 240px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 28px 0;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    padding: 0 24px 28px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+
+  .logo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .logo h1 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .logo p {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .nav-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--muted);
+    padding: 0 24px 8px;
+  }
+
+  .nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 24px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    transition: all .15s;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    border-left: 2px solid transparent;
+  }
+
+  .nav-btn:hover { color: var(--text); background: var(--surface2); }
+  .nav-btn.active { color: var(--accent); border-left-color: var(--accent); background: rgba(79,142,247,.07); }
+
+  .nav-btn .icon {
+    width: 18px; height: 18px;
+    opacity: .7;
+  }
+
+  .nav-section { margin-bottom: 8px; }
+
+  .status-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    margin-top: auto;
+    margin-left: 24px;
+    margin-bottom: 16px;
+    box-shadow: 0 0 8px var(--green);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%,100% { opacity: 1; }
+    50% { opacity: .4; }
+  }
+
+  .api-url {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    padding: 0 24px;
+    word-break: break-all;
+  }
+
+  /* ── MAIN ── */
+  .main {
+    margin-left: 240px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .page-title {
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  .page-subtitle {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 1px;
+  }
+
+  .topbar-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  /* ── CONTENT ── */
+  .content {
+    padding: 32px;
+    flex: 1;
+  }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ── CARDS ── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+  }
+
+  .stat-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .stat-value {
+    font-size: 32px;
+    font-weight: 700;
+    font-family: 'DM Mono', monospace;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .stat-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* ── PANEL ── */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+
+  .panel-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .panel-title {
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all .15s;
+    font-family: 'Sora', sans-serif;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+  }
+  .btn-primary:hover { background: #3a7ee8; }
+
+  .btn-success {
+    background: var(--green);
+    color: #0d1a13;
+  }
+  .btn-success:hover { opacity: .85; }
+
+  .btn-danger {
+    background: var(--red);
+    color: #fff;
+  }
+  .btn-danger:hover { opacity: .85; }
+
+  .btn-ghost {
+    background: var(--surface2);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  .btn-sm { padding: 5px 10px; font-size: 11px; }
+  .btn-xs { padding: 3px 8px; font-size: 10px; }
+
+  /* ── TABLE ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  thead th {
+    background: var(--surface2);
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background .1s;
+  }
+
+  tbody tr:hover { background: var(--surface2); }
+  tbody tr:last-child { border-bottom: none; }
+
+  tbody td {
+    padding: 12px 16px;
+    color: var(--text);
+  }
+
+  .td-mono {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+  }
+
+  .badge-green { background: rgba(45,212,160,.15); color: var(--green); }
+  .badge-red   { background: rgba(247, 96, 79,.15); color: var(--red); }
+  .badge-blue  { background: rgba(79,142,247,.15); color: var(--accent); }
+
+  .actions-cell { display: flex; gap: 6px; }
+
+  /* ── FORM ── */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    padding: 20px;
+  }
+
+  .form-grid.cols-1 { grid-template-columns: 1fr; }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .form-group.span-2 { grid-column: span 2; }
+
+  label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--muted);
+  }
+
+  input, select, textarea {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 9px 12px;
+    font-size: 13px;
+    color: var(--text);
+    font-family: 'Sora', sans-serif;
+    transition: border .15s;
+    outline: none;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(79,142,247,.1);
+  }
+
+  input::placeholder, textarea::placeholder { color: var(--muted); }
+
+  select option { background: var(--surface); }
+
+  .form-actions {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+
+  /* ── RESPONSE LOG ── */
+  .response-log {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    line-height: 1.7;
+    max-height: 260px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+  }
+
+  .log-line { display: block; }
+  .log-success { color: var(--green); }
+  .log-error   { color: var(--red); }
+  .log-info    { color: var(--accent); }
+  .log-muted   { color: var(--muted); }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.6);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    width: 100%;
+    max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: slideUp .2s ease;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to   { transform: translateY(0); opacity: 1; }
+  }
+
+  .modal-header {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .modal-title {
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 20px;
+    cursor: pointer;
+    line-height: 1;
+    padding: 4px;
+    border-radius: 4px;
+    transition: color .15s;
+  }
+  .modal-close:hover { color: var(--text); }
+
+  .modal-body { padding: 20px 24px; }
+
+  /* ── NOTIFICATION ── */
+  .notif {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 999;
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all .25s ease;
+    max-width: 320px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.4);
+  }
+
+  .notif.show { transform: translateY(0); opacity: 1; }
+  .notif.success { border-left: 3px solid var(--green); }
+  .notif.error   { border-left: 3px solid var(--red); }
+  .notif.info    { border-left: 3px solid var(--accent); }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--muted);
+  }
+  .empty-state .big { font-size: 40px; margin-bottom: 12px; }
+  .empty-state p { font-size: 13px; }
+
+  /* ── ENDPOINT DOCS ── */
+  .endpoint-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+  }
+  .endpoint-item:last-child { border-bottom: none; }
+
+  .method-pill {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    min-width: 56px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .m-get    { background: rgba(79,142,247,.15); color: var(--accent); }
+  .m-post   { background: rgba(45,212,160,.15); color: var(--green); }
+  .m-put    { background: rgba(247,201,79,.15); color: var(--yellow); }
+  .m-delete { background: rgba(247,96,79,.15);  color: var(--red); }
+
+  .ep-path {
+    font-family: 'DM Mono', monospace;
+    color: var(--text);
+    font-size: 12px;
+    flex: 1;
+  }
+
+  .ep-desc { color: var(--muted); font-size: 11px; margin-top: 2px; }
+
+  .http-codes { display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; }
+  .code-chip {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    background: var(--surface2);
+    color: var(--muted);
+  }
+
+  /* ── SPLIT LAYOUT ── */
+  .split-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  .section-heading {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--muted);
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .loading-spinner {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin .6s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .config-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .config-row label {
+    min-width: 100px;
+    text-transform: uppercase;
+    font-size: 10px;
+    letter-spacing: .08em;
+  }
+
+  .config-row input {
+    flex: 1;
+  }
+
+  .tag { 
+    display: inline-flex; align-items: center; 
+    background: var(--surface2); border: 1px solid var(--border);
+    padding: 2px 8px; border-radius: 4px;
+    font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted);
+  }
+</style>
+</head>
+<body>
+
+<!-- ─── SIDEBAR ─── -->
+<nav class="sidebar">
+  <div class="logo">
+    <div class="logo-badge">
+      <span>API</span><span>v1</span>
+    </div>
+    <h1>EmployeeHub</h1>
+    <p>localhost:8000/api/v1</p>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">General</div>
+    <button class="nav-btn active" onclick="showView('dashboard')">
+      <svg class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+        <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+      </svg>
+      Dashboard
+    </button>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Recursos</div>
+    <button class="nav-btn" onclick="showView('departamentos')">
+      <svg class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+      Departamentos
+    </button>
+    <button class="nav-btn" onclick="showView('empleados')">
+      <svg class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
+      </svg>
+      Empleados
+    </button>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Sistema</div>
+    <button class="nav-btn" onclick="showView('endpoints')">
+      <svg class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+      </svg>
+      Endpoints
+    </button>
+    <button class="nav-btn" onclick="showView('config')">
+      <svg class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/>
+      </svg>
+      Configuración
+    </button>
+  </div>
+
+  <div style="flex:1"></div>
+  <div class="status-dot"></div>
+  <div class="api-url">API activa en localhost:8000</div>
+  <div style="height:16px"></div>
+</nav>
+
+<!-- ─── MAIN ─── -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div>
+      <div class="page-title" id="page-title">Dashboard</div>
+      <div class="page-subtitle" id="page-subtitle">Resumen general de la API</div>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost btn-sm" onclick="reloadAll()">↺ Actualizar</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ═══════════ DASHBOARD ═══════════ -->
+    <div id="view-dashboard" class="view active">
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-label">Departamentos</div>
+          <div class="stat-value" id="stat-deptos">—</div>
+          <div class="stat-sub">registrados</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Empleados activos</div>
+          <div class="stat-value" id="stat-activos">—</div>
+          <div class="stat-sub">con activo = true</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Bajas lógicas</div>
+          <div class="stat-value" id="stat-bajas">—</div>
+          <div class="stat-sub">activo = false</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Endpoints</div>
+          <div class="stat-value">11</div>
+          <div class="stat-sub">cubiertos</div>
+        </div>
+      </div>
+
+      <div class="split-layout">
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Últimos departamentos</span>
+            <button class="btn btn-ghost btn-sm" onclick="showView('departamentos')">Ver todos</button>
+          </div>
+          <div id="dash-deptos-list" style="padding:12px 0">
+            <div class="empty-state"><div class="big">🏢</div><p>Cargando...</p></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Últimos empleados</span>
+            <button class="btn btn-ghost btn-sm" onclick="showView('empleados')">Ver todos</button>
+          </div>
+          <div id="dash-emp-list" style="padding:12px 0">
+            <div class="empty-state"><div class="big">👥</div><p>Cargando...</p></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><span class="panel-title">Log de respuestas API</span></div>
+        <div class="response-log" id="main-log"><span class="log-muted">// Esperando peticiones...</span></div>
+      </div>
+    </div>
+
+    <!-- ═══════════ DEPARTAMENTOS ═══════════ -->
+    <div id="view-departamentos" class="view">
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Nuevo departamento</span>
+          <span class="tag">POST /api/v1/departamentos</span>
+        </div>
+        <div class="form-grid cols-1" style="grid-template-columns:1fr 1fr">
+          <div class="form-group">
+            <label>Nombre *</label>
+            <input id="dep-nombre" type="text" placeholder="ej. Tecnología">
+          </div>
+          <div class="form-group">
+            <label>Descripción</label>
+            <input id="dep-desc" type="text" placeholder="ej. Área de desarrollo de software">
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="crearDepartamento()">+ Crear departamento</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Lista de departamentos</span>
+          <button class="btn btn-ghost btn-sm" onclick="loadDepartamentos()">↺ Recargar</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nombre</th>
+              <th>Descripción</th>
+              <th>Creado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="dep-tbody">
+            <tr><td colspan="5" style="text-align:center;padding:32px;color:var(--muted)">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══════════ EMPLEADOS ═══════════ -->
+    <div id="view-empleados" class="view">
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Nuevo empleado</span>
+          <span class="tag">POST /api/v1/empleados</span>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Nombre *</label>
+            <input id="emp-nombre" type="text" placeholder="ej. Carlos">
+          </div>
+          <div class="form-group">
+            <label>Apellido *</label>
+            <input id="emp-apellido" type="text" placeholder="ej. García López">
+          </div>
+          <div class="form-group">
+            <label>Correo *</label>
+            <input id="emp-correo" type="email" placeholder="ej. carlos@empresa.com">
+          </div>
+          <div class="form-group">
+            <label>Cargo *</label>
+            <input id="emp-cargo" type="text" placeholder="ej. Desarrollador Backend">
+          </div>
+          <div class="form-group">
+            <label>Salario *</label>
+            <input id="emp-salario" type="number" placeholder="ej. 18500" min="0.01">
+          </div>
+          <div class="form-group">
+            <label>Departamento *</label>
+            <select id="emp-depto">
+              <option value="">— Seleccionar —</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="crearEmpleado()">+ Crear empleado</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Lista de empleados</span>
+          <button class="btn btn-ghost btn-sm" onclick="loadEmpleados()">↺ Recargar</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nombre completo</th>
+              <th>Correo</th>
+              <th>Cargo</th>
+              <th>Salario</th>
+              <th>Depto.</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="emp-tbody">
+            <tr><td colspan="8" style="text-align:center;padding:32px;color:var(--muted)">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══════════ ENDPOINTS ═══════════ -->
+    <div id="view-endpoints" class="view">
+      <div class="panel" style="margin-bottom:24px">
+        <div class="panel-header"><span class="panel-title">Departamentos — /api/v1/departamentos</span></div>
+        <div class="endpoint-item">
+          <span class="method-pill m-get">GET</span>
+          <div><div class="ep-path">/api/v1/departamentos</div><div class="ep-desc">Lista todos los departamentos registrados.</div><div class="http-codes"><span class="code-chip">200</span></div></div>
+        </div>
+        <div class="endpoint-item">
+          <span class="method-pill m-post">POST</span>
+          <div><div class="ep-path">/api/v1/departamentos</div><div class="ep-desc">Crea un nuevo departamento con nombre y descripción.</div><div class="http-codes"><span class="code-chip">201</span><span class="code-chip">422</span></div></div>
+        </div>
+        <div class="endpoint-item">
+          <span class="method-pill m-get">GET</span>
+          <div><div class="ep-path">/api/v1/departamentos/{id}</div><div class="ep-desc">Retorna los datos de un departamento específico.</div><div class="http-codes"><span class="code-chip">200</span><span class="code-chip">404</span></div></div>
+        </div>
+        <div class="endpoint-item">
+          <span class="method-pill m-put">PUT</span>
+          <div><div class="ep-path">/api/v1/departamentos/{id}</div><div class="ep-desc">Actualiza nombre y/o descripción.</div><div class="http-codes"><span class="code-chip">200</span><span class="code-chip">404</span><span class="code-chip">422</span></div></div>
+        </div>
+        <div class="endpoint-item">
+          <span class="method-pill m-delete">DELETE</span>
+          <div><div class="ep-path">/api/v1/departamentos/{id}</div><div class="ep-desc">Elimina departamento. Falla si tiene empleados activos.</div><div class="http-codes"><span class="code-chip">200</span><span class="code-chip">404</span><span class="code-chip">409</span></div></div>
+        </div>
+        <div class="endpoint-item">
+          <span class="method-pill m-get">GET</span>
+          <div><div class="ep-path">/api/v1/departamentos/{id}/empleados</div><div class="ep-desc">Lista empleados activos del departamento.</div><div class="http-codes"><span class="code-chip">200</span><span class="code-chip">404</span></div></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><span class="panel-title">Empleados — /api/v1/empleados</span></div>
+        <div class="endpoint-item">
+          <span class="method-pill m-get">GET</span>
+          <div><div class="ep-path">/api/v1/empleados</div><div class="ep-desc">Lista todos los empleados con datos del departamento.</div><div class="http-codes"><span class="code-chip">200</span></div></div>
+        </div>
+        <div class="endpoint-item">
+          <span class="method-pill m-post">POST</span>
+          <div><div class="ep-path">/api/v1/empleados</div><div class="ep-desc">Registra un nuevo empleado. Correo único, salario > 0.</div><div class="http-codes"><span class="code-chip">201</span><span class="code-chip">404</span><span class="code-chip">422</span></div></div>
+        </div>
+        <div class="endpoint-item">
+          <span class="method-pill m-get">GET</span>
+          <div><div class="ep-path">/api/v1/empleados/{id}</div><div class="ep-desc">Retorna datos completos de un empleado.</div><div class="http-codes"><span class="code-chip">200</span><span class="code-chip">404</span></div></div>
+        </div>
+        <div class="endpoint-item">
+          <span class="method-pill m-put">PUT</span>
+          <div><div class="ep-path">/api/v1/empleados/{id}</div><div class="ep-desc">Actualiza campos del empleado (parcial).</div><div class="http-codes"><span class="code-chip">200</span><span class="code-chip">404</span><span class="code-chip">422</span></div></div>
+        </div>
+        <div class="endpoint-item">
+          <span class="method-pill m-delete">DELETE</span>
+          <div><div class="ep-path">/api/v1/empleados/{id}</div><div class="ep-desc">Baja lógica: cambia activo = false.</div><div class="http-codes"><span class="code-chip">200</span><span class="code-chip">400</span><span class="code-chip">404</span></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ CONFIG ═══════════ -->
+    <div id="view-config" class="view">
+      <div class="panel">
+        <div class="panel-header"><span class="panel-title">Configuración de la API</span></div>
+        <div class="config-row">
+          <label>Base URL</label>
+          <input id="cfg-base" type="text" value="http://localhost:8000/api/v1">
+          <button class="btn btn-primary btn-sm" onclick="saveConfig()">Guardar</button>
+        </div>
+        <div class="config-row">
+          <label>Estado</label>
+          <button class="btn btn-ghost btn-sm" onclick="pingAPI()">🔍 Verificar conexión</button>
+          <span id="ping-result" style="font-size:12px;color:var(--muted);margin-left:8px"></span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><span class="panel-title">Prueba rápida de endpoints</span></div>
+        <div style="padding:20px">
+          <div class="section-heading">Buscar empleado por ID</div>
+          <div style="display:flex;gap:10px;margin-bottom:20px">
+            <input id="test-emp-id" type="number" placeholder="ID del empleado" style="width:180px">
+            <button class="btn btn-primary btn-sm" onclick="testGetEmpleado()">GET /empleados/{id}</button>
+          </div>
+
+          <div class="section-heading">Buscar departamento por ID</div>
+          <div style="display:flex;gap:10px;margin-bottom:20px">
+            <input id="test-dep-id" type="number" placeholder="ID del departamento" style="width:180px">
+            <button class="btn btn-primary btn-sm" onclick="testGetDepartamento()">GET /departamentos/{id}</button>
+          </div>
+
+          <div class="section-heading">Empleados de un departamento</div>
+          <div style="display:flex;gap:10px">
+            <input id="test-emp-dep-id" type="number" placeholder="ID del departamento" style="width:180px">
+            <button class="btn btn-primary btn-sm" onclick="testGetEmpleadosDepto()">GET /departamentos/{id}/empleados</button>
+          </div>
+        </div>
+        <div class="panel-header" style="border-top:1px solid var(--border);border-bottom:none;margin-top:8px">
+          <span class="panel-title">Respuesta</span>
+        </div>
+        <div style="padding:16px">
+          <div class="response-log" id="test-log"><span class="log-muted">// Ejecuta una prueba para ver la respuesta...</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ─── MODALES ─── -->
+
+<!-- Modal editar departamento -->
+<div class="modal-overlay" id="modal-edit-dep">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Editar departamento</span>
+      <button class="modal-close" onclick="closeModal('modal-edit-dep')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-dep-id">
+      <div class="form-grid cols-1" style="padding:0">
+        <div class="form-group">
+          <label>Nombre</label>
+          <input id="edit-dep-nombre" type="text">
+        </div>
+        <div class="form-group">
+          <label>Descripción</label>
+          <input id="edit-dep-desc" type="text">
+        </div>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-edit-dep')">Cancelar</button>
+      <button class="btn btn-primary" onclick="actualizarDepartamento()">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal editar empleado -->
+<div class="modal-overlay" id="modal-edit-emp">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Editar empleado</span>
+      <button class="modal-close" onclick="closeModal('modal-edit-emp')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-emp-id">
+      <div class="form-grid" style="padding:0">
+        <div class="form-group">
+          <label>Nombre</label>
+          <input id="edit-emp-nombre" type="text">
+        </div>
+        <div class="form-group">
+          <label>Apellido</label>
+          <input id="edit-emp-apellido" type="text">
+        </div>
+        <div class="form-group">
+          <label>Correo</label>
+          <input id="edit-emp-correo" type="email">
+        </div>
+        <div class="form-group">
+          <label>Cargo</label>
+          <input id="edit-emp-cargo" type="text">
+        </div>
+        <div class="form-group">
+          <label>Salario</label>
+          <input id="edit-emp-salario" type="number">
+        </div>
+        <div class="form-group">
+          <label>Departamento</label>
+          <select id="edit-emp-depto"></select>
+        </div>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-edit-emp')">Cancelar</button>
+      <button class="btn btn-primary" onclick="actualizarEmpleado()">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
+<!-- Notificación -->
+<div class="notif" id="notif">
+  <span id="notif-icon">✓</span>
+  <span id="notif-msg"></span>
+</div>
+
+<!-- ─── JAVASCRIPT ─── -->
+<script>
+// ══════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════
+let BASE = 'http://localhost:8000/api/v1';
+
+function saveConfig() {
+  BASE = document.getElementById('cfg-base').value.trim().replace(/\/$/, '');
+  notify('Configuración guardada', 'success');
+  reloadAll();
+}
+
+// ══════════════════════════════════════════════
+// NAV / VIEWS
+// ══════════════════════════════════════════════
+const titles = {
+  dashboard:     ['Dashboard', 'Resumen general de la API'],
+  departamentos: ['Departamentos', 'Gestión de departamentos — CRUD completo'],
+  empleados:     ['Empleados', 'Gestión de empleados — CRUD completo'],
+  endpoints:     ['Endpoints', 'Documentación de los 11 endpoints disponibles'],
+  config:        ['Configuración', 'URL de la API y pruebas rápidas'],
+};
+
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  document.getElementById('page-title').textContent = titles[name][0];
+  document.getElementById('page-subtitle').textContent = titles[name][1];
+
+  if (name === 'departamentos') loadDepartamentos();
+  if (name === 'empleados') loadEmpleados();
+  if (name === 'dashboard') loadDashboard();
+}
+
+// ══════════════════════════════════════════════
+// HTTP HELPERS
+// ══════════════════════════════════════════════
+async function api(method, path, body = null) {
+  const opts = {
+    method,
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const url = BASE + path;
+  logLine(`→ ${method} ${url}`, 'info');
+  try {
+    const res = await fetch(url, opts);
+    const data = await res.json().catch(() => ({}));
+    const color = res.ok ? 'success' : 'error';
+    logLine(`← ${res.status} ${JSON.stringify(data, null, 2)}`, color);
+    return { ok: res.ok, status: res.status, data };
+  } catch (e) {
+    logLine(`✗ Error de red: ${e.message}`, 'error');
+    return { ok: false, status: 0, data: null };
+  }
+}
+
+// ══════════════════════════════════════════════
+// LOG
+// ══════════════════════════════════════════════
+function logLine(text, type = 'muted') {
+  const log = document.getElementById('main-log');
+  const span = document.createElement('span');
+  span.className = `log-line log-${type}`;
+  span.textContent = `[${new Date().toLocaleTimeString()}] ${text}\n`;
+  log.appendChild(span);
+  log.scrollTop = log.scrollHeight;
+}
+
+function logTo(elId, text, type = 'muted') {
+  const el = document.getElementById(elId);
+  el.innerHTML = `<span class="log-${type}">${escHtml(text)}</span>`;
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ══════════════════════════════════════════════
+// NOTIFICATION
+// ══════════════════════════════════════════════
+function notify(msg, type = 'info') {
+  const el = document.getElementById('notif');
+  const icons = { success: '✓', error: '✗', info: 'ℹ' };
+  document.getElementById('notif-msg').textContent = msg;
+  document.getElementById('notif-icon').textContent = icons[type] || 'ℹ';
+  el.className = `notif ${type} show`;
+  setTimeout(() => el.classList.remove('show'), 3200);
+}
+
+// ══════════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════════
+async function loadDashboard() {
+  const [dr, er] = await Promise.all([
+    api('GET', '/departamentos'),
+    api('GET', '/empleados'),
+  ]);
+
+  const deptos = dr.ok ? (dr.data.data || []) : [];
+  const emps   = er.ok ? (er.data.data || []) : [];
+  const activos = emps.filter(e => e.activo).length;
+  const bajas   = emps.filter(e => !e.activo).length;
+
+  document.getElementById('stat-deptos').textContent  = deptos.length;
+  document.getElementById('stat-activos').textContent = activos;
+  document.getElementById('stat-bajas').textContent   = bajas;
+
+  // mini-lista deptos
+  const dd = document.getElementById('dash-deptos-list');
+  if (!deptos.length) {
+    dd.innerHTML = '<div class="empty-state"><div class="big">🏢</div><p>No hay departamentos</p></div>';
+  } else {
+    dd.innerHTML = deptos.slice(0,5).map(d => `
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 20px;border-bottom:1px solid var(--border)">
+        <span style="font-family:\'DM Mono\',monospace;font-size:11px;color:var(--muted);min-width:24px">#${d.id}</span>
+        <span style="font-size:13px;flex:1">${escHtml(d.nombre)}</span>
+        <span style="font-size:11px;color:var(--muted)">${escHtml(d.descripcion||'—')}</span>
+      </div>`).join('');
+  }
+
+  // mini-lista empleados
+  const de = document.getElementById('dash-emp-list');
+  if (!emps.length) {
+    de.innerHTML = '<div class="empty-state"><div class="big">👥</div><p>No hay empleados</p></div>';
+  } else {
+    de.innerHTML = emps.slice(0,5).map(e => `
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 20px;border-bottom:1px solid var(--border)">
+        <span style="font-family:\'DM Mono\',monospace;font-size:11px;color:var(--muted);min-width:24px">#${e.id}</span>
+        <span style="font-size:13px;flex:1">${escHtml(e.nombre)} ${escHtml(e.apellido)}</span>
+        <span class="badge ${e.activo ? 'badge-green' : 'badge-red'}">${e.activo ? 'Activo' : 'Baja'}</span>
+      </div>`).join('');
+  }
+}
+
+// ══════════════════════════════════════════════
+// DEPARTAMENTOS
+// ══════════════════════════════════════════════
+let deptosList = [];
+
+async function loadDepartamentos() {
+  const r = await api('GET', '/departamentos');
+  const tbody = document.getElementById('dep-tbody');
+  if (!r.ok) { tbody.innerHTML = `<tr><td colspan="5" style="color:var(--red);padding:20px;text-align:center">Error al cargar departamentos</td></tr>`; return; }
+  deptosList = r.data.data || [];
+  if (!deptosList.length) {
+    tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><div class="big">🏢</div><p>No hay departamentos. ¡Crea el primero!</p></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = deptosList.map(d => `
+    <tr>
+      <td class="td-mono">${d.id}</td>
+      <td><strong>${escHtml(d.nombre)}</strong></td>
+      <td style="color:var(--muted)">${escHtml(d.descripcion || '—')}</td>
+      <td class="td-mono">${d.created_at ? d.created_at.slice(0,10) : '—'}</td>
+      <td>
+        <div class="actions-cell">
+          <button class="btn btn-ghost btn-xs" onclick="openEditDep(${d.id})">✏ Editar</button>
+          <button class="btn btn-danger btn-xs" onclick="eliminarDepartamento(${d.id}, '${escHtml(d.nombre)}')">🗑 Eliminar</button>
+        </div>
+      </td>
+    </tr>`).join('');
+
+  // Actualizar select de empleados
+  updateDeptoSelects();
+}
+
+async function crearDepartamento() {
+  const nombre = document.getElementById('dep-nombre').value.trim();
+  const desc   = document.getElementById('dep-desc').value.trim();
+  if (!nombre) { notify('El nombre es obligatorio', 'error'); return; }
+  const r = await api('POST', '/departamentos', { nombre, descripcion: desc || undefined });
+  if (r.ok) {
+    notify(`Departamento "${nombre}" creado`, 'success');
+    document.getElementById('dep-nombre').value = '';
+    document.getElementById('dep-desc').value   = '';
+    loadDepartamentos();
+  } else {
+    const msg = r.data?.errors ? Object.values(r.data.errors).flat().join(', ') : (r.data?.message || 'Error al crear');
+    notify(msg, 'error');
+  }
+}
+
+function openEditDep(id) {
+  const d = deptosList.find(x => x.id === id);
+  if (!d) return;
+  document.getElementById('edit-dep-id').value     = d.id;
+  document.getElementById('edit-dep-nombre').value = d.nombre;
+  document.getElementById('edit-dep-desc').value   = d.descripcion || '';
+  document.getElementById('modal-edit-dep').classList.add('open');
+}
+
+async function actualizarDepartamento() {
+  const id     = document.getElementById('edit-dep-id').value;
+  const nombre = document.getElementById('edit-dep-nombre').value.trim();
+  const desc   = document.getElementById('edit-dep-desc').value.trim();
+  const r = await api('PUT', `/departamentos/${id}`, { nombre, descripcion: desc });
+  if (r.ok) {
+    notify('Departamento actualizado', 'success');
+    closeModal('modal-edit-dep');
+    loadDepartamentos();
+  } else {
+    const msg = r.data?.errors ? Object.values(r.data.errors).flat().join(', ') : (r.data?.message || 'Error al actualizar');
+    notify(msg, 'error');
+  }
+}
+
+async function eliminarDepartamento(id, nombre) {
+  if (!confirm(`¿Eliminar departamento "${nombre}"?\nEsto fallará si tiene empleados activos.`)) return;
+  const r = await api('DELETE', `/departamentos/${id}`);
+  if (r.ok) {
+    notify(`Departamento eliminado`, 'success');
+    loadDepartamentos();
+  } else {
+    notify(r.data?.message || 'No se pudo eliminar', 'error');
+  }
+}
+
+// ══════════════════════════════════════════════
+// EMPLEADOS
+// ══════════════════════════════════════════════
+let empList = [];
+
+async function loadEmpleados() {
+  const r = await api('GET', '/empleados');
+  const tbody = document.getElementById('emp-tbody');
+  if (!r.ok) { tbody.innerHTML = `<tr><td colspan="8" style="color:var(--red);padding:20px;text-align:center">Error al cargar empleados</td></tr>`; return; }
+  empList = r.data.data || [];
+  if (!empList.length) {
+    tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><div class="big">👥</div><p>No hay empleados. ¡Crea el primero!</p></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = empList.map(e => {
+    const depto = e.departamento?.nombre || (deptosList.find(d => d.id === e.departamento_id)?.nombre) || `#${e.departamento_id}`;
+    return `
+    <tr style="${!e.activo ? 'opacity:.55' : ''}">
+      <td class="td-mono">${e.id}</td>
+      <td><strong>${escHtml(e.nombre)} ${escHtml(e.apellido)}</strong></td>
+      <td class="td-mono">${escHtml(e.correo)}</td>
+      <td>${escHtml(e.cargo)}</td>
+      <td class="td-mono">$${Number(e.salario).toLocaleString('es-MX')}</td>
+      <td><span class="badge badge-blue">${escHtml(depto)}</span></td>
+      <td><span class="badge ${e.activo ? 'badge-green' : 'badge-red'}">${e.activo ? 'Activo' : 'Baja'}</span></td>
+      <td>
+        <div class="actions-cell">
+          <button class="btn btn-ghost btn-xs" onclick="openEditEmp(${e.id})">✏</button>
+          ${e.activo ? `<button class="btn btn-danger btn-xs" onclick="bajaEmpleado(${e.id})">↓ Baja</button>` : '<span style="font-size:10px;color:var(--muted)">Dado de baja</span>'}
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function crearEmpleado() {
+  const nombre         = document.getElementById('emp-nombre').value.trim();
+  const apellido       = document.getElementById('emp-apellido').value.trim();
+  const correo         = document.getElementById('emp-correo').value.trim();
+  const cargo          = document.getElementById('emp-cargo').value.trim();
+  const salario        = parseFloat(document.getElementById('emp-salario').value);
+  const departamento_id = parseInt(document.getElementById('emp-depto').value);
+  if (!nombre||!apellido||!correo||!cargo||!salario||!departamento_id) { notify('Completa todos los campos obligatorios', 'error'); return; }
+  const r = await api('POST', '/empleados', { nombre, apellido, correo, cargo, salario, departamento_id });
+  if (r.ok) {
+    notify(`Empleado "${nombre}" creado`, 'success');
+    ['emp-nombre','emp-apellido','emp-correo','emp-cargo','emp-salario'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('emp-depto').value = '';
+    loadEmpleados();
+  } else {
+    const msg = r.data?.errors ? Object.values(r.data.errors).flat().join(', ') : (r.data?.message || 'Error al crear');
+    notify(msg, 'error');
+  }
+}
+
+function openEditEmp(id) {
+  const e = empList.find(x => x.id === id);
+  if (!e) return;
+  document.getElementById('edit-emp-id').value      = e.id;
+  document.getElementById('edit-emp-nombre').value  = e.nombre;
+  document.getElementById('edit-emp-apellido').value= e.apellido;
+  document.getElementById('edit-emp-correo').value  = e.correo;
+  document.getElementById('edit-emp-cargo').value   = e.cargo;
+  document.getElementById('edit-emp-salario').value = e.salario;
+  updateDeptoSelect('edit-emp-depto', e.departamento_id);
+  document.getElementById('modal-edit-emp').classList.add('open');
+}
+
+async function actualizarEmpleado() {
+  const id           = document.getElementById('edit-emp-id').value;
+  const nombre       = document.getElementById('edit-emp-nombre').value.trim();
+  const apellido     = document.getElementById('edit-emp-apellido').value.trim();
+  const correo       = document.getElementById('edit-emp-correo').value.trim();
+  const cargo        = document.getElementById('edit-emp-cargo').value.trim();
+  const salario      = parseFloat(document.getElementById('edit-emp-salario').value);
+  const departamento_id = parseInt(document.getElementById('edit-emp-depto').value);
+  const r = await api('PUT', `/empleados/${id}`, { nombre, apellido, correo, cargo, salario, departamento_id });
+  if (r.ok) {
+    notify('Empleado actualizado', 'success');
+    closeModal('modal-edit-emp');
+    loadEmpleados();
+  } else {
+    const msg = r.data?.errors ? Object.values(r.data.errors).flat().join(', ') : (r.data?.message || 'Error al actualizar');
+    notify(msg, 'error');
+  }
+}
+
+async function bajaEmpleado(id) {
+  const e = empList.find(x => x.id === id);
+  if (!confirm(`¿Dar de baja a ${e?.nombre || 'este empleado'}?\nEsta acción es una baja lógica (no elimina el registro).`)) return;
+  const r = await api('DELETE', `/empleados/${id}`);
+  if (r.ok) {
+    notify('Empleado dado de baja correctamente', 'success');
+    loadEmpleados();
+  } else {
+    notify(r.data?.message || 'No se pudo dar de baja', 'error');
+  }
+}
+
+// ══════════════════════════════════════════════
+// SELECTS DE DEPARTAMENTO
+// ══════════════════════════════════════════════
+function updateDeptoSelects() {
+  updateDeptoSelect('emp-depto');
+  updateDeptoSelect('edit-emp-depto');
+}
+
+function updateDeptoSelect(selectId, selectedId = null) {
+  const sel = document.getElementById(selectId);
+  if (!sel) return;
+  const current = selectedId ?? sel.value;
+  sel.innerHTML = '<option value="">— Seleccionar —</option>' +
+    deptosList.map(d => `<option value="${d.id}" ${d.id == current ? 'selected' : ''}>${escHtml(d.nombre)}</option>`).join('');
+}
+
+// ══════════════════════════════════════════════
+// TEST ENDPOINTS
+// ══════════════════════════════════════════════
+async function testGetEmpleado() {
+  const id = document.getElementById('test-emp-id').value;
+  if (!id) { notify('Ingresa un ID', 'error'); return; }
+  const r = await api('GET', `/empleados/${id}`);
+  logTo('test-log', JSON.stringify(r.data, null, 2), r.ok ? 'success' : 'error');
+}
+
+async function testGetDepartamento() {
+  const id = document.getElementById('test-dep-id').value;
+  if (!id) { notify('Ingresa un ID', 'error'); return; }
+  const r = await api('GET', `/departamentos/${id}`);
+  logTo('test-log', JSON.stringify(r.data, null, 2), r.ok ? 'success' : 'error');
+}
+
+async function testGetEmpleadosDepto() {
+  const id = document.getElementById('test-emp-dep-id').value;
+  if (!id) { notify('Ingresa un ID', 'error'); return; }
+  const r = await api('GET', `/departamentos/${id}/empleados`);
+  logTo('test-log', JSON.stringify(r.data, null, 2), r.ok ? 'success' : 'error');
+}
+
+async function pingAPI() {
+  const el = document.getElementById('ping-result');
+  el.textContent = 'Verificando...';
+  const r = await api('GET', '/departamentos');
+  el.textContent = r.ok ? '✓ Conexión exitosa' : '✗ Sin conexión — verifica que php artisan serve esté corriendo';
+  el.style.color = r.ok ? 'var(--green)' : 'var(--red)';
+}
+
+// ══════════════════════════════════════════════
+// MODALES
+// ══════════════════════════════════════════════
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+// ══════════════════════════════════════════════
+// RELOAD ALL
+// ══════════════════════════════════════════════
+function reloadAll() {
+  loadDashboard();
+  loadDepartamentos();
+  loadEmpleados();
+}
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+loadDashboard();
+loadDepartamentos();
+</script>
+</body>
+</html>
