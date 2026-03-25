@@ -1,14 +1,9 @@
-<div align="center">
-
-<!-- Animated Banner -->
-<img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=700&size=32&duration=2500&pause=1000&color=36BCF7&center=true&vCenter=true&width=800&lines=🚀+EmployeeHub+API;Sistema+de+Gestión+de+Empleados;Laravel+11+%2B+MySQL+Backend;Dashboard+Vanilla+JavaScript;Proyecto+Full+Stack+MVC" alt="Typing Animation" />
 
 <br/>
 
 <!-- Status Badges -->
 <img src="https://img.shields.io/badge/Estado-Activo-22c55e?style=for-the-badge&logo=checkmarx&logoColor=white"/>
 <img src="https://img.shields.io/badge/Versión-1.0.0-3b82f6?style=for-the-badge"/>
-<img src="https://img.shields.io/badge/Licencia-MIT-a855f7?style=for-the-badge"/>
 <br/><br/>
 
 <!-- Tech Badges -->
