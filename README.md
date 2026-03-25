@@ -322,13 +322,6 @@ Puedes probar la API con cualquiera de estas herramientas:
 
 <div align="center">
 
-**¿Encontraste un bug o tienes una sugerencia?**
-
-[![Issues](https://img.shields.io/badge/Abrir_Issue-GitHub-181717?style=for-the-badge&logo=github)](https://github.com/JuanJL-dev/EmployeeHub/issues)
-[![Pull Requests](https://img.shields.io/badge/Pull_Request-Contribuir-22c55e?style=for-the-badge&logo=github)](https://github.com/JuanJL-dev/EmployeeHub/pulls)
-
-<br/>
-
 *Hecho con ❤️ — EmployeeHub © 2025*
 
 </div>
