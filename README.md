@@ -1,30 +1,38 @@
-<<<<<<< HEAD
-# EmployeeHub
-=======
-# EmployeeHub API 🏢
+# EmployeeHub API & Dashboard 🏢
 
-API REST para la gestión de empleados y departamentos.  
-**Framework:** PHP 8.2 + Laravel 11 · **BD:** MySQL · **Pruebas:** Thunder Client
+![Laravel](https://img.shields.io/badge/Laravel-11-FF2D20?style=for-the-badge&logo=laravel)
+![PHP](https://img.shields.io/badge/PHP-8.2-777BB4?style=for-the-badge&logo=php)
+![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql)
+![JavaScript](https://img.shields.io/badge/JavaScript-Vanilla-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
+![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
+![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
 
----
-
-## Requisitos previos
-
-| Herramienta | Versión mínima | Descarga |
-|---|---|---|
-| PHP | 8.2 | https://www.php.net/downloads |
-| Composer | 2.x | https://getcomposer.org/download/ |
-| MySQL | 8.0 | https://dev.mysql.com/downloads/ |
-| Laravel CLI | 11.x | `composer global require laravel/installer` |
+El presente proyecto documenta el desarrollo de una **API REST** robusta para la gestión de empleados y departamentos, junto con un **Dashboard web** creado en HTML, CSS y JavaScript puro para consumir y probar la API de forma visual.
 
 ---
 
-## Instalación paso a paso
+## 🛠️ Justificación de la Tecnología Utilizada
+
+### Backend (API REST)
+* **Framework:** PHP 8.2 + Laravel 11
+* **Base de Datos:** MySQL 8.0
+* **Pruebas:** Thunder Client 
+
+### Frontend (Dashboard HTML + CSS + JS puro)
+El Dashboard fue desarrollado como parte del proceso de validación de la API, demostrando que los endpoints responden correctamente ante operaciones reales ejecutadas desde un cliente diferente a Thunder Client.
+* **Sin dependencias externas:** No requiere instalación de npm, node_modules ni herramientas de compilación.
+* **Portabilidad total:** Un único archivo `.html` funciona en cualquier computadora con navegador moderno.
+* **Transparencia del código:** El código es completamente legible y verificable. Cada llamada a la API es visible directamente en el JavaScript.
+* **Fetch API Nativa:** JavaScript moderno incluye la API Fetch que permite realizar peticiones HTTP (GET, POST, PUT, DELETE) sin librerías adicionales.
+
+---
+
+## 🚀 Instalación paso a paso
 
 ```bash
 # 1 — Clonar el repositorio
-git clone https://github.com/tu-usuario/employeehub-api.git
-cd employeehub-api
+git clone [https://github.com/JuanJL-dev/EmployeeHub.git](https://github.com/JuanJL-dev/EmployeeHub.git)
+cd employeehub_laravel
 
 # 2 — Instalar dependencias PHP
 composer install
@@ -41,12 +49,11 @@ php artisan key:generate
 # 6 — Crear la base de datos en MySQL
 mysql -u root -p -e "CREATE DATABASE employeehub_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 
-# 7 — Ejecutar migraciones
+# 7 — Ejecutar migraciones para crear las tablas
 php artisan migrate
 
 # 8 — Iniciar el servidor
 php artisan serve
-```
 
 El servidor quedará disponible en: `http://localhost:8000`
 
@@ -101,4 +108,4 @@ employeehub_api/
 ├── composer.json
 └── README.md
 ```
->>>>>>> ba3ca78 (Primer commit)
+
